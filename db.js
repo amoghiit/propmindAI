@@ -1,7 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const DB_FILE = path.join(__dirname, 'propmind.json');
+const DB_FILE = process.env.VERCEL
+  ? '/tmp/propmind.json'
+  : path.join(__dirname, 'propmind.json');
 
 const SPECIALTIES = ['Plumbing', 'Electrical', 'HVAC', 'Pest Control', 'General Repairs'];
 
