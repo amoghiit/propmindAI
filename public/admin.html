@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PropMind AI — Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .pulse-dot { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }
+    .scroll-thin::-webkit-scrollbar { width: 6px }
+    .scroll-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+<div id="app" class="min-h-screen flex flex-col">
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-20">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">P</div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900">PropMind AI <span class="text-xs font-medium text-slate-400 ml-1">Admin</span></h1>
+          <p id="companyLabel" class="text-xs text-slate-500">Loading…</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <nav class="flex gap-1 bg-slate-100 p-1 rounded-lg">
+          <button data-tab="triage" class="tab-btn px-4 py-1.5 text-sm font-medium rounded-md">Triage</button>
+          <button data-tab="requests" class="tab-btn px-4 py-1.5 text-sm font-medium rounded-md">Requests</button>
+          <button data-tab="knowledge" class="tab-btn px-4 py-1.5 text-sm font-medium rounded-md">Knowledge Base</button>
+        </nav>
+        <button id="logoutBtn" class="text-sm text-slate-500 hover:text-slate-900 px-3 py-1.5 rounded-md hover:bg-slate-100">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
+
+    <!-- TRIAGE TAB -->
+    <section id="tab-triage" class="tab-panel grid lg:grid-cols-5 gap-6">
+      <div class="lg:col-span-3 bg-white rounded-xl border border-slate-200 p-6">
+        <h2 class="font-semibold text-slate-900 mb-1">Submit a Tenant Request</h2>
+        <p class="text-sm text-slate-500 mb-5">PropMind AI will classify, draft a reply, and assign a contractor.</p>
+        <form id="triageForm" class="space-y-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs font-medium text-slate-600">Tenant name</label>
+              <input name="tenantName" required class="mt-1 w-full rounded-lg border-slate-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Maria Garcia" />
+            </div>
+            <div>
+              <label class="text-xs font-medium text-slate-600">Unit</label>
+              <input name="unit" class="mt-1 w-full rounded-lg border-slate-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="4B" />
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-slate-600">Property</label>
+            <select name="property" id="propertySelect" class="mt-1 w-full rounded-lg border-slate-300 border px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500"></select>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-slate-600">Issue described by tenant</label>
+            <textarea name="message" required rows="4" class="mt-1 w-full rounded-lg border-slate-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500" placeholder="Kitchen sink is leaking badly under the cabinet…"></textarea>
+          </div>
+          <button id="analyzeBtn" type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium py-2.5 rounded-lg hover:opacity-90 transition disabled:opacity-50">
+            Analyze with AI
+          </button>
+        </form>
+      </div>
+
+      <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-6 min-h-[400px]">
+        <h2 class="font-semibold text-slate-900 mb-1">AI Result</h2>
+        <p class="text-sm text-slate-500 mb-4">Output appears here.</p>
+        <div id="aiResult" class="text-sm text-slate-400 italic">No analysis yet. Submit a request to see PropMind AI in action.</div>
+      </div>
+    </section>
+
+    <!-- REQUESTS TAB -->
+    <section id="tab-requests" class="tab-panel hidden">
+      <div class="grid sm:grid-cols-4 gap-4 mb-6">
+        <div class="stat bg-white border border-slate-200 rounded-xl p-4"><div class="text-xs text-slate-500">Open</div><div id="statOpen" class="text-2xl font-bold text-slate-900">–</div></div>
+        <div class="stat bg-white border border-slate-200 rounded-xl p-4"><div class="text-xs text-slate-500">In Progress</div><div id="statProgress" class="text-2xl font-bold text-slate-900">–</div></div>
+        <div class="stat bg-white border border-slate-200 rounded-xl p-4"><div class="text-xs text-slate-500">Emergencies</div><div id="statEmergency" class="text-2xl font-bold text-red-600">–</div></div>
+        <div class="stat bg-white border border-slate-200 rounded-xl p-4"><div class="text-xs text-slate-500">Resolved</div><div id="statResolved" class="text-2xl font-bold text-emerald-600">–</div></div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+          <h2 class="font-semibold text-slate-900">Maintenance Requests</h2>
+          <button id="refreshBtn" class="text-sm text-indigo-600 hover:underline">Refresh</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider">
+              <tr>
+                <th class="px-4 py-3 text-left">Tenant</th>
+                <th class="px-4 py-3 text-left">Property / Unit</th>
+                <th class="px-4 py-3 text-left">Issue</th>
+                <th class="px-4 py-3 text-left">Category</th>
+                <th class="px-4 py-3 text-left">Urgency</th>
+                <th class="px-4 py-3 text-left">Status</th>
+                <th class="px-4 py-3 text-left">Contractor</th>
+                <th class="px-4 py-3 text-left">Date</th>
+              </tr>
+            </thead>
+            <tbody id="requestsTable" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- KNOWLEDGE TAB -->
+    <section id="tab-knowledge" class="tab-panel hidden space-y-6">
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <label class="text-xs font-medium text-slate-600">Company Name</label>
+        <input id="kbCompany" class="mt-1 w-full rounded-lg border-slate-300 border px-3 py-2 text-sm" />
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl border border-slate-200 p-6">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-semibold">Contractors</h3>
+            <button onclick="addRow('contractors')" class="text-sm text-indigo-600">+ Add</button>
+          </div>
+          <div id="kbContractors" class="space-y-2"></div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-6">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-semibold">Properties</h3>
+            <button onclick="addRow('properties')" class="text-sm text-indigo-600">+ Add</button>
+          </div>
+          <div id="kbProperties" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-semibold">Company Rules</h3>
+          <button onclick="addRow('rules')" class="text-sm text-indigo-600">+ Add</button>
+        </div>
+        <div id="kbRules" class="space-y-2"></div>
+      </div>
+
+      <div class="flex justify-end">
+        <button id="saveKbBtn" class="bg-indigo-600 text-white font-medium px-6 py-2.5 rounded-lg hover:bg-indigo-700">Save Knowledge Base</button>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="fixed bottom-6 right-6 hidden bg-slate-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50"></div>
+</div>
+
+<script>
+const API = '';
+let kb = { company: '', contractors: [], rules: [], properties: [] };
+let requests = [];
+
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+
+function toast(msg, isErr=false) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.toggle('bg-red-600', isErr);
+  t.classList.toggle('bg-slate-900', !isErr);
+  t.classList.remove('hidden');
+  setTimeout(() => t.classList.add('hidden'), 3000);
+}
+
+// Tabs
+function switchTab(name) {
+  $$('.tab-panel').forEach(p => p.classList.add('hidden'));
+  $('#tab-' + name).classList.remove('hidden');
+  $$('.tab-btn').forEach(b => {
+    const active = b.dataset.tab === name;
+    b.classList.toggle('bg-white', active);
+    b.classList.toggle('shadow-sm', active);
+    b.classList.toggle('text-slate-900', active);
+    b.classList.toggle('text-slate-600', !active);
+  });
+  if (name === 'requests') loadRequests();
+  if (name === 'knowledge') renderKb();
+}
+$$('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+// Load knowledge base
+async function loadKb() {
+  const r = await fetch(API + '/api/knowledge');
+  kb = await r.json();
+  $('#companyLabel').textContent = kb.company;
+  const sel = $('#propertySelect');
+  sel.innerHTML = kb.properties.map(p => `<option>${p.name}</option>`).join('');
+}
+
+// Triage form
+$('#triageForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const payload = Object.fromEntries(fd.entries());
+  const btn = $('#analyzeBtn');
+  btn.disabled = true;
+  btn.textContent = 'Analyzing…';
+  $('#aiResult').innerHTML = '<div class="text-slate-400 italic flex items-center gap-2"><span class="pulse-dot">●</span> Calling Claude…</div>';
+
+  try {
+    const r = await fetch(API + '/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Failed');
+    renderAiResult(data);
+    toast('Request created #' + data.requestId);
+    e.target.reset();
+  } catch (err) {
+    $('#aiResult').innerHTML = `<div class="text-red-600 text-sm">${err.message}</div>`;
+    toast(err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Analyze with AI';
+  }
+});
+
+function urgencyClass(u) {
+  return {
+    Emergency: 'bg-red-100 text-red-700',
+    High: 'bg-orange-100 text-orange-700',
+    Normal: 'bg-blue-100 text-blue-700',
+    Low: 'bg-slate-100 text-slate-700',
+  }[u] || 'bg-slate-100 text-slate-700';
+}
+function statusClass(s) {
+  return {
+    Open: 'bg-amber-100 text-amber-700',
+    'In Progress': 'bg-blue-100 text-blue-700',
+    Resolved: 'bg-emerald-100 text-emerald-700',
+  }[s] || 'bg-slate-100 text-slate-700';
+}
+
+function renderAiResult(d) {
+  $('#aiResult').innerHTML = `
+    <div class="space-y-3 text-sm">
+      ${d.isEmergency ? `<div class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-3"><strong>🚨 EMERGENCY</strong><div class="mt-1">${d.teamAlert||''}</div></div>`:''}
+      <div class="flex gap-2">
+        <span class="px-2 py-0.5 rounded-md text-xs font-medium ${urgencyClass(d.urgency)}">${d.urgency}</span>
+        <span class="px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700">${d.category}</span>
+        ${d.notifyOwner ? '<span class="px-2 py-0.5 rounded-md text-xs font-medium bg-purple-100 text-purple-700">Notify owner</span>' : ''}
+      </div>
+      <div>
+        <div class="text-xs font-semibold text-slate-500 uppercase">Assigned</div>
+        <div>${d.assignedContractor||'—'}</div>
+      </div>
+      <div>
+        <div class="text-xs font-semibold text-slate-500 uppercase">Reply to tenant</div>
+        <div class="bg-slate-50 rounded-lg p-3 mt-1 whitespace-pre-wrap">${d.tenantReply||''}</div>
+      </div>
+      <div>
+        <div class="text-xs font-semibold text-slate-500 uppercase">Internal note</div>
+        <div class="text-slate-600 mt-1">${d.internalNote||''}</div>
+      </div>
+    </div>`;
+}
+
+// Requests table
+async function loadRequests() {
+  const r = await fetch(API + '/api/requests');
+  requests = await r.json();
+  $('#statOpen').textContent = requests.filter(x=>x.status==='Open').length;
+  $('#statProgress').textContent = requests.filter(x=>x.status==='In Progress').length;
+  $('#statEmergency').textContent = requests.filter(x=>x.urgency==='Emergency').length;
+  $('#statResolved').textContent = requests.filter(x=>x.status==='Resolved').length;
+  $('#requestsTable').innerHTML = requests.map(r => `
+    <tr class="hover:bg-slate-50">
+      <td class="px-4 py-3 font-medium">${r.tenant}</td>
+      <td class="px-4 py-3 text-slate-600">${r.property}<div class="text-xs text-slate-400">Unit ${r.unit}</div></td>
+      <td class="px-4 py-3 max-w-xs truncate" title="${(r.issue||'').replace(/"/g,'&quot;')}">${r.issue||''}</td>
+      <td class="px-4 py-3">${r.category||''}</td>
+      <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-md text-xs font-medium ${urgencyClass(r.urgency)}">${r.urgency||''}</span></td>
+      <td class="px-4 py-3">
+        <select data-id="${r.id}" class="status-sel text-xs rounded-md border-slate-300 ${statusClass(r.status)}">
+          ${['Open','In Progress','Resolved'].map(s=>`<option ${s===r.status?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </td>
+      <td class="px-4 py-3 text-slate-600">${r.contractor||''}</td>
+      <td class="px-4 py-3 text-slate-500 text-xs">${r.date||''}</td>
+    </tr>`).join('') || `<tr><td colspan="8" class="px-4 py-8 text-center text-slate-400">No requests yet.</td></tr>`;
+
+  $$('.status-sel').forEach(sel => sel.addEventListener('change', async (e) => {
+    const id = e.target.dataset.id;
+    await fetch(API + '/api/requests/' + id, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: e.target.value }),
+    });
+    toast('Status updated');
+    loadRequests();
+  }));
+}
+$('#refreshBtn').addEventListener('click', loadRequests);
+
+// Knowledge base editor
+function renderKb() {
+  $('#kbCompany').value = kb.company || '';
+
+  const specialties = kb.specialties || ['Plumbing','Electrical','HVAC','Pest Control','General Repairs'];
+
+  $('#kbContractors').innerHTML = kb.contractors.map((c, i) => `
+    <div class="grid grid-cols-12 gap-2 items-center">
+      <input data-kind="contractors" data-i="${i}" data-f="name" value="${c.name||''}" placeholder="Name" class="col-span-3 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
+      <select data-kind="contractors" data-i="${i}" data-f="specialty" class="col-span-2 rounded-md border-slate-300 border px-2 py-1.5 text-sm bg-white">
+        ${specialties.map(s => `<option ${s===c.specialty?'selected':''}>${s}</option>`).join('')}
+      </select>
+      <input data-kind="contractors" data-i="${i}" data-f="phone" value="${c.phone||''}" placeholder="Phone" class="col-span-2 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
+      <input data-kind="contractors" data-i="${i}" data-f="notes" value="${c.notes||''}" placeholder="Notes" class="col-span-4 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
+      <button onclick="removeRow('contractors',${i})" class="col-span-1 text-red-500 text-sm">✕</button>
+    </div>`).join('');
+
+  $('#kbProperties').innerHTML = kb.properties.map((p, i) => {
+    const prefs = p.preferredContractors || {};
+    const prefRows = specialties.map(spec => {
+      const options = kb.contractors.filter(c => c.specialty === spec);
+      const current = prefs[spec] || '';
+      return `
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-medium text-slate-500 w-28">${spec}</span>
+          <select data-kind="propPref" data-i="${i}" data-spec="${spec}" class="flex-1 rounded-md border-slate-300 border px-2 py-1 text-xs bg-white">
+            <option value="">— none —</option>
+            ${options.map(o => `<option value="${o.name}" ${o.name===current?'selected':''}>${o.name} (${o.phone})</option>`).join('')}
+          </select>
+        </div>`;
+    }).join('');
+    return `
+      <div class="border border-slate-200 rounded-lg p-3 space-y-3">
+        <div class="grid grid-cols-12 gap-2 items-center">
+          <input data-kind="properties" data-i="${i}" data-f="name" value="${p.name||''}" placeholder="Property name" class="col-span-3 rounded-md border-slate-300 border px-2 py-1.5 text-sm font-medium" />
+          <input data-kind="properties" data-i="${i}" data-f="address" value="${p.address||''}" placeholder="Address" class="col-span-3 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
+          <input data-kind="properties" data-i="${i}" data-f="owner" value="${p.owner||''}" placeholder="Owner" class="col-span-2 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
+          <input data-kind="properties" data-i="${i}" data-f="ownerPhone" value="${p.ownerPhone||''}" placeholder="Owner phone" class="col-span-3 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
+          <button onclick="removeRow('properties',${i})" class="col-span-1 text-red-500 text-sm">✕</button>
+        </div>
+        <div class="bg-slate-50 rounded-md p-3 space-y-1.5">
+          <div class="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Preferred contractors for this property</div>
+          ${prefRows}
+        </div>
+      </div>`;
+  }).join('');
+
+  $('#kbRules').innerHTML = kb.rules.map((r, i) => `
+    <div class="grid grid-cols-12 gap-2 items-center">
+      <input data-kind="rules" data-i="${i}" value="${(r||'').replace(/"/g,'&quot;')}" placeholder="Rule" class="col-span-11 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
+      <button onclick="removeRow('rules',${i})" class="col-span-1 text-red-500 text-sm">✕</button>
+    </div>`).join('');
+
+  document.querySelectorAll('[data-kind]').forEach(inp => {
+    const handler = (e) => {
+      const { kind, i, f, spec } = e.target.dataset;
+      if (kind === 'rules') kb.rules[+i] = e.target.value;
+      else if (kind === 'propPref') {
+        if (!kb.properties[+i].preferredContractors) kb.properties[+i].preferredContractors = {};
+        kb.properties[+i].preferredContractors[spec] = e.target.value;
+      } else if (kind === 'contractors' && f === 'specialty') {
+        kb[kind][+i][f] = e.target.value;
+        renderKb();
+      } else {
+        kb[kind][+i][f] = e.target.value;
+      }
+    };
+    inp.addEventListener('input', handler);
+    inp.addEventListener('change', handler);
+  });
+  $('#kbCompany').oninput = (e) => kb.company = e.target.value;
+}
+
+function addRow(kind) {
+  const specs = kb.specialties || ['Plumbing','Electrical','HVAC','Pest Control','General Repairs'];
+  if (kind === 'contractors') kb.contractors.push({ name:'', specialty: specs[0], phone:'', notes:'' });
+  if (kind === 'properties') kb.properties.push({ name:'', address:'', owner:'', ownerPhone:'', preferredContractors: {} });
+  if (kind === 'rules') kb.rules.push('');
+  renderKb();
+}
+function removeRow(kind, i) {
+  kb[kind].splice(i, 1);
+  renderKb();
+}
+window.addRow = addRow; window.removeRow = removeRow;
+
+$('#saveKbBtn').addEventListener('click', async () => {
+  const r = await fetch(API + '/api/knowledge', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(kb),
+  });
+  if (r.ok) {
+    const data = await r.json();
+    kb = data.data || kb;
+    $('#companyLabel').textContent = kb.company;
+    const sel = $('#propertySelect');
+    sel.innerHTML = kb.properties.map(p => `<option>${p.name}</option>`).join('');
+    renderKb();
+    toast('Knowledge base saved');
+  } else {
+    toast('Save failed', true);
+  }
+});
+
+// Logout
+$('#logoutBtn').addEventListener('click', async () => {
+  await fetch(API + '/api/admin/logout', { method: 'POST' });
+  location.href = '/admin';
+});
+
+// Init
+(async () => {
+  await loadKb();
+  switchTab('triage');
+})();
+</script>
+</body>
+</html>

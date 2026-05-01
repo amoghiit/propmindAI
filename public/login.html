@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Login — PropMind AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>body { font-family: 'Inter', system-ui, sans-serif; }</style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-indigo-50 min-h-screen flex items-center justify-center px-4">
+
+<div class="w-full max-w-sm">
+  <div class="text-center mb-6">
+    <div class="inline-flex w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 items-center justify-center text-white font-bold text-2xl mb-3 shadow-lg shadow-indigo-200">P</div>
+    <h1 class="text-2xl font-bold text-slate-900">PropMind AI</h1>
+    <p class="text-slate-500 text-sm">Admin panel login</p>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label class="text-sm font-medium text-slate-700">Password</label>
+        <input id="password" type="password" required autofocus class="mt-1.5 w-full rounded-lg border-slate-300 border px-3.5 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" placeholder="Enter admin password" />
+      </div>
+      <div id="errorBox" class="hidden text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2"></div>
+      <button id="loginBtn" type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium py-2.5 rounded-lg hover:opacity-90 transition disabled:opacity-50 shadow-md shadow-indigo-200">
+        Sign in
+      </button>
+    </form>
+  </div>
+
+  <p class="text-center text-xs text-slate-400 mt-6">
+    Tenant? <a href="/" class="text-indigo-600 hover:underline">Submit a maintenance request</a>
+  </p>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+
+$('#loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = $('#loginBtn');
+  const err = $('#errorBox');
+  err.classList.add('hidden');
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+
+  try {
+    const r = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: $('#password').value }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Login failed');
+    location.href = '/admin';
+  } catch (e) {
+    err.textContent = e.message;
+    err.classList.remove('hidden');
+    btn.disabled = false;
+    btn.textContent = 'Sign in';
+  }
+});
+</script>
+</body>
+</html>
