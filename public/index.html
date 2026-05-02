@@ -25,9 +25,15 @@
   <!-- Form Card -->
   <div id="formCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
     <form id="form" class="space-y-5">
-      <div>
-        <label class="text-sm font-medium text-slate-700">Your name</label>
-        <input name="tenantName" required class="mt-1.5 w-full rounded-lg border-slate-300 border px-3.5 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" placeholder="e.g. Maria Garcia" />
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="text-sm font-medium text-slate-700">Your name</label>
+          <input name="tenantName" required class="mt-1.5 w-full rounded-lg border-slate-300 border px-3.5 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" placeholder="e.g. Maria Garcia" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-slate-700">Email <span class="text-slate-400 text-xs font-normal">(for confirmation)</span></label>
+          <input name="tenantEmail" type="email" class="mt-1.5 w-full rounded-lg border-slate-300 border px-3.5 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" placeholder="you@example.com" />
+        </div>
       </div>
 
       <div class="grid grid-cols-2 gap-3">
@@ -140,9 +146,20 @@ $('#form').addEventListener('submit', async (e) => {
       $('#emergencyBanner').classList.add('hidden');
     }
 
+    const langBadge = data.detectedLanguage && data.detectedLanguage !== 'English'
+      ? `<span class="px-2.5 py-1 rounded-md font-medium bg-indigo-100 text-indigo-700">${data.detectedLanguage}</span>` : '';
+    const notif = data.notifications || {};
+    const sentTo = [];
+    if (notif.tenant?.sent) sentTo.push('you');
+    if (notif.contractor?.sent) sentTo.push('contractor');
+    if (notif.owner?.sent) sentTo.push('owner');
+    const emailBadge = sentTo.length
+      ? `<span class="px-2.5 py-1 rounded-md font-medium bg-emerald-100 text-emerald-700">📧 Notified ${sentTo.join(', ')}</span>` : '';
     $('#metaRow').innerHTML = `
       <span class="px-2.5 py-1 rounded-md font-medium ${urgencyClass(data.urgency)}">${data.urgency}</span>
       <span class="px-2.5 py-1 rounded-md font-medium bg-slate-100 text-slate-700">${data.category}</span>
+      ${langBadge}
+      ${emailBadge}
     `;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (err) {

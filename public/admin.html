@@ -100,6 +100,7 @@
                 <th class="px-4 py-3 text-left">Urgency</th>
                 <th class="px-4 py-3 text-left">Status</th>
                 <th class="px-4 py-3 text-left">Contractor</th>
+                <th class="px-4 py-3 text-left">Notifications</th>
                 <th class="px-4 py-3 text-left">Date</th>
               </tr>
             </thead>
@@ -263,6 +264,21 @@ function renderAiResult(d) {
     </div>`;
 }
 
+function notifBadge(n) {
+  if (!n) return '<span class="text-slate-300">—</span>';
+  const dot = (state) => {
+    if (state?.sent) return '<span title="Sent" class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>';
+    if (state?.skipped) return '<span title="Skipped: ' + (state.reason||'') + '" class="inline-block w-2 h-2 rounded-full bg-slate-300"></span>';
+    if (state?.error) return '<span title="Error: ' + (state.error||'').replace(/"/g,'') + '" class="inline-block w-2 h-2 rounded-full bg-red-500"></span>';
+    return '<span class="inline-block w-2 h-2 rounded-full bg-slate-300"></span>';
+  };
+  return `<div class="flex items-center gap-1.5">
+    ${dot(n.tenant)}<span class="text-[10px] text-slate-400">T</span>
+    ${dot(n.contractor)}<span class="text-[10px] text-slate-400">C</span>
+    ${dot(n.owner)}<span class="text-[10px] text-slate-400">O</span>
+  </div>`;
+}
+
 // Requests table
 async function loadRequests() {
   const r = await fetch(API + '/api/requests');
@@ -284,8 +300,9 @@ async function loadRequests() {
         </select>
       </td>
       <td class="px-4 py-3 text-slate-600">${r.contractor||''}</td>
+      <td class="px-4 py-3 text-slate-500 text-xs">${notifBadge(r.notifications)}${r.detectedLanguage && r.detectedLanguage !== 'English' ? `<div class="text-indigo-600 mt-0.5">${r.detectedLanguage}</div>` : ''}</td>
       <td class="px-4 py-3 text-slate-500 text-xs">${r.date||''}</td>
-    </tr>`).join('') || `<tr><td colspan="8" class="px-4 py-8 text-center text-slate-400">No requests yet.</td></tr>`;
+    </tr>`).join('') || `<tr><td colspan="9" class="px-4 py-8 text-center text-slate-400">No requests yet.</td></tr>`;
 
   $$('.status-sel').forEach(sel => sel.addEventListener('change', async (e) => {
     const id = e.target.dataset.id;
@@ -308,12 +325,13 @@ function renderKb() {
 
   $('#kbContractors').innerHTML = kb.contractors.map((c, i) => `
     <div class="grid grid-cols-12 gap-2 items-center">
-      <input data-kind="contractors" data-i="${i}" data-f="name" value="${c.name||''}" placeholder="Name" class="col-span-3 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
+      <input data-kind="contractors" data-i="${i}" data-f="name" value="${c.name||''}" placeholder="Name" class="col-span-2 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
       <select data-kind="contractors" data-i="${i}" data-f="specialty" class="col-span-2 rounded-md border-slate-300 border px-2 py-1.5 text-sm bg-white">
         ${specialties.map(s => `<option ${s===c.specialty?'selected':''}>${s}</option>`).join('')}
       </select>
       <input data-kind="contractors" data-i="${i}" data-f="phone" value="${c.phone||''}" placeholder="Phone" class="col-span-2 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
-      <input data-kind="contractors" data-i="${i}" data-f="notes" value="${c.notes||''}" placeholder="Notes" class="col-span-4 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
+      <input data-kind="contractors" data-i="${i}" data-f="email" value="${c.email||''}" placeholder="Email" type="email" class="col-span-2 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
+      <input data-kind="contractors" data-i="${i}" data-f="notes" value="${c.notes||''}" placeholder="Notes" class="col-span-3 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
       <button onclick="removeRow('contractors',${i})" class="col-span-1 text-red-500 text-sm">✕</button>
     </div>`).join('');
 
@@ -339,6 +357,9 @@ function renderKb() {
           <input data-kind="properties" data-i="${i}" data-f="owner" value="${p.owner||''}" placeholder="Owner" class="col-span-2 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
           <input data-kind="properties" data-i="${i}" data-f="ownerPhone" value="${p.ownerPhone||''}" placeholder="Owner phone" class="col-span-3 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
           <button onclick="removeRow('properties',${i})" class="col-span-1 text-red-500 text-sm">✕</button>
+        </div>
+        <div class="grid grid-cols-12 gap-2 items-center">
+          <input data-kind="properties" data-i="${i}" data-f="ownerEmail" type="email" value="${p.ownerEmail||''}" placeholder="Owner email (for high-priority alerts)" class="col-span-11 rounded-md border-slate-300 border px-2 py-1.5 text-sm" />
         </div>
         <div class="bg-slate-50 rounded-md p-3 space-y-1.5">
           <div class="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Preferred contractors for this property</div>
@@ -375,8 +396,8 @@ function renderKb() {
 
 function addRow(kind) {
   const specs = kb.specialties || ['Plumbing','Electrical','HVAC','Pest Control','General Repairs'];
-  if (kind === 'contractors') kb.contractors.push({ name:'', specialty: specs[0], phone:'', notes:'' });
-  if (kind === 'properties') kb.properties.push({ name:'', address:'', owner:'', ownerPhone:'', preferredContractors: {} });
+  if (kind === 'contractors') kb.contractors.push({ name:'', specialty: specs[0], phone:'', email:'', notes:'' });
+  if (kind === 'properties') kb.properties.push({ name:'', address:'', owner:'', ownerPhone:'', ownerEmail:'', preferredContractors: {} });
   if (kind === 'rules') kb.rules.push('');
   renderKb();
 }

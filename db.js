@@ -12,15 +12,15 @@ const DEFAULT_DATA = {
     company: 'Sunrise Property Management',
     specialties: SPECIALTIES,
     contractors: [
-      { id: 1, name: 'John Murphy', specialty: 'Plumbing', phone: '312-555-0101', notes: 'Available 24/7 for emergencies' },
-      { id: 2, name: 'AquaFix Pros', specialty: 'Plumbing', phone: '312-555-0102', notes: 'Bulk-pricing partner' },
-      { id: 3, name: 'Sara Electric Co.', specialty: 'Electrical', phone: '312-555-0182', notes: 'Call before 8pm' },
-      { id: 4, name: 'Volt Masters', specialty: 'Electrical', phone: '312-555-0184', notes: 'Specializes in old wiring' },
-      { id: 5, name: 'CoolAir HVAC', specialty: 'HVAC', phone: '312-555-0143', notes: 'Best for heating emergencies' },
-      { id: 6, name: 'Climate Kings', specialty: 'HVAC', phone: '312-555-0146', notes: 'Same-day AC service' },
-      { id: 7, name: 'BugBusters', specialty: 'Pest Control', phone: '312-555-0211', notes: 'Eco-friendly treatments' },
-      { id: 8, name: 'Pest Patrol', specialty: 'Pest Control', phone: '312-555-0215', notes: 'Rodent specialists' },
-      { id: 9, name: 'FixIt General', specialty: 'General Repairs', phone: '312-555-0167', notes: 'Good for small jobs' },
+      { id: 1, name: 'John Murphy', specialty: 'Plumbing', phone: '312-555-0101', email: '', notes: 'Available 24/7 for emergencies' },
+      { id: 2, name: 'AquaFix Pros', specialty: 'Plumbing', phone: '312-555-0102', email: '', notes: 'Bulk-pricing partner' },
+      { id: 3, name: 'Sara Electric Co.', specialty: 'Electrical', phone: '312-555-0182', email: '', notes: 'Call before 8pm' },
+      { id: 4, name: 'Volt Masters', specialty: 'Electrical', phone: '312-555-0184', email: '', notes: 'Specializes in old wiring' },
+      { id: 5, name: 'CoolAir HVAC', specialty: 'HVAC', phone: '312-555-0143', email: '', notes: 'Best for heating emergencies' },
+      { id: 6, name: 'Climate Kings', specialty: 'HVAC', phone: '312-555-0146', email: '', notes: 'Same-day AC service' },
+      { id: 7, name: 'BugBusters', specialty: 'Pest Control', phone: '312-555-0211', email: '', notes: 'Eco-friendly treatments' },
+      { id: 8, name: 'Pest Patrol', specialty: 'Pest Control', phone: '312-555-0215', email: '', notes: 'Rodent specialists' },
+      { id: 9, name: 'FixIt General', specialty: 'General Repairs', phone: '312-555-0167', email: '', notes: 'Good for small jobs' },
     ],
     rules: [
       'Emergency repairs must be responded to within 2 hours',
@@ -32,7 +32,7 @@ const DEFAULT_DATA = {
     properties: [
       {
         id: 1, name: 'Riverside Apartments', address: '204 Riverside Dr', units: 12,
-        owner: 'Mr. James Wilson', ownerPhone: '312-555-0190',
+        owner: 'Mr. James Wilson', ownerPhone: '312-555-0190', ownerEmail: '',
         preferredContractors: {
           'Plumbing': 'John Murphy',
           'Electrical': 'Sara Electric Co.',
@@ -43,7 +43,7 @@ const DEFAULT_DATA = {
       },
       {
         id: 2, name: 'Maple Street Complex', address: '87 Maple St', units: 8,
-        owner: 'Mrs. Linda Chen', ownerPhone: '312-555-0155',
+        owner: 'Mrs. Linda Chen', ownerPhone: '312-555-0155', ownerEmail: '',
         preferredContractors: {
           'Plumbing': 'AquaFix Pros',
           'Electrical': 'Volt Masters',
@@ -54,7 +54,7 @@ const DEFAULT_DATA = {
       },
       {
         id: 3, name: 'Downtown Lofts', address: '15 W Monroe St', units: 6,
-        owner: 'Downtown Props LLC', ownerPhone: '312-555-0133',
+        owner: 'Downtown Props LLC', ownerPhone: '312-555-0133', ownerEmail: '',
         preferredContractors: {
           'Plumbing': 'John Murphy',
           'Electrical': 'Volt Masters',
@@ -123,6 +123,7 @@ const updateKnowledge = (kb) => {
       name: c.name || '',
       specialty: c.specialty || 'General Repairs',
       phone: c.phone || '',
+      email: c.email || '',
       notes: c.notes || '',
     }));
   }
@@ -137,6 +138,7 @@ const updateKnowledge = (kb) => {
       units: p.units || 0,
       owner: p.owner || '',
       ownerPhone: p.ownerPhone || '',
+      ownerEmail: p.ownerEmail || '',
       preferredContractors: p.preferredContractors && typeof p.preferredContractors === 'object'
         ? { ...p.preferredContractors }
         : {},
